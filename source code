@@ -1,0 +1,107 @@
+
+```java
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+
+public class RegistrationForm extends JFrame implements ActionListener {
+    JTextField nameField, mobileField, addressField;
+    JRadioButton maleBtn, femaleBtn;
+    JComboBox<String> dayBox, monthBox, yearBox;
+    JCheckBox termsBox;
+    JButton submitBtn, resetBtn;
+
+    public RegistrationForm() {
+        setTitle("Registration Form");
+        setSize(400, 400);
+        setLayout(new GridLayout(8, 2));
+
+        nameField = new JTextField();
+        mobileField = new JTextField();
+        addressField = new JTextField();
+        maleBtn = new JRadioButton("Male");
+        femaleBtn = new JRadioButton("Female");
+        ButtonGroup genderGroup = new ButtonGroup();
+        genderGroup.add(maleBtn);
+        genderGroup.add(femaleBtn);
+
+        dayBox = new JComboBox<>();
+        monthBox = new JComboBox<>();
+        yearBox = new JComboBox<>();
+
+        for (int i = 1; i <= 31; i++) dayBox.addItem(String.valueOf(i));
+        for (int i = 1; i <= 12; i++) monthBox.addItem(String.valueOf(i));
+        for (int i = 1970; i <= 2025; i++) yearBox.addItem(String.valueOf(i));
+termsBox = new JCheckBox("Accept Terms and Conditions");
+        submitBtn = new JButton("Submit");
+        resetBtn = new JButton("Reset");
+
+        submitBtn.addActionListener(this);
+        resetBtn.addActionListener(this);
+
+        add(new JLabel("Name:"));
+        add(nameField);
+        add(new JLabel("Mobile:"));
+        add(mobileField);
+        add(new JLabel("Gender:"));
+        JPanel genderPanel = new JPanel();
+        genderPanel.add(maleBtn);
+        genderPanel.add(femaleBtn);
+        add(genderPanel);
+        add(new JLabel("DOB:"));
+        JPanel dobPanel = new JPanel();
+        dobPanel.add(dayBox);
+        dobPanel.add(monthBox);
+        dobPanel.add(yearBox);
+        add(dobPanel);
+        add(new JLabel("Address:"));
+        add(addressField);
+        add(termsBox);
+        add(new JLabel());
+        add(submitBtn);
+        add(resetBtn);
+
+        setVisible(true);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == submitBtn) {
+            if (!termsBox.isSelected()) {
+                JOptionPane.showMessageDialog(this, "Please accept terms");
+                return;
+            }
+            String name = nameField.getText();
+String mobile = mobileField.getText();
+            String gender = maleBtn.isSelected() ? "Male" : "Female";
+            String dob = dayBox.getSelectedItem() + "-" + monthBox.getSelectedItem() + "-" + yearBox.getSelectedItem();
+            String address = addressField.getText();
+
+            try {
+                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/registration", "root", "your_password");
+                PreparedStatement stmt = conn.prepareStatement("INSERT INTO users(name, mobile, gender, dob, address) VALUES(?,?,?,?,?)");
+                stmt.setString(1, name);
+                stmt.setString(2, mobile);
+                stmt.setString(3, gender);
+                stmt.setString(4, dob);
+                stmt.setString(5, address);
+                stmt.executeUpdate();
+                conn.close();
+                JOptionPane.showMessageDialog(this, "Registered Successfully!");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
+            }
+        } else if (e.getSource() == resetBtn) {
+            nameField.setText("");
+            mobileField.setText("");
+            genderGroup.clearSelection();
+            addressField.setText("");
+termsBox.setSelected(false);
+        }
+    }
+
+    public static void main(String[] args) {
+        new RegistrationForm();
+    }
+}
